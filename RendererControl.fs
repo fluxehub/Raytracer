@@ -5,32 +5,41 @@ open Avalonia.Layout
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Raytracer
+open Raytracer.RenderMonitor
 open SkiaSharp
 open Viewport
 open Raytracer.Mutex
 open Raytracer.Rendering
 
 type State = {
-    running: bool
     viewportWidth: int
     viewportHeight: int
     surfaceMutex: SurfaceMutex
-    cancellationToken: CancellationTokenSource
+    renderState: RenderState
+    renderMonitor: RenderMonitor
 }
 
 let init =
-    { running = false
-      viewportWidth = 1024
-      viewportHeight = 512
-      surfaceMutex = SurfaceMutex(new SKBitmap (1024, 512, SKColorType.Bgra8888, SKAlphaType.Unpremul))
-      cancellationToken = new CancellationTokenSource () }
+    { 
+      viewportWidth = 256
+      viewportHeight = 256
+      surfaceMutex = SurfaceMutex(new SKBitmap (256, 256, SKColorType.Bgra8888, SKAlphaType.Unpremul))
+      renderState = Stopped
+      renderMonitor = RenderMonitor () }
 
 type Msg = Start | Stop
 
-let render surface =
+// TODO: Dispatch the stopped message
+let render surface renderMonitor =
     async {
-        Renderer.render surface
-        printfn "Done!"
+        let points = Renderer.getRenderPoints surface
+        points
+        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface renderMonitor } )
+        |> Async.Parallel
+        |> Async.Ignore
+        |> Async.RunSynchronously
+        
+        renderMonitor.State <- Stopped
     }
 
 let update (msg: Msg) (state: State) : State =
@@ -41,14 +50,24 @@ let update (msg: Msg) (state: State) : State =
         let surface = state.surfaceMutex.Surface
         surface.Dispose ()
         
-        let surface = new SKBitmap (1024, 512, SKColorType.Bgra8888, SKAlphaType.Unpremul)
+        let surface = new SKBitmap (state.viewportWidth, state.viewportHeight, SKColorType.Bgra8888, SKAlphaType.Unpremul)
         state.surfaceMutex.Surface <- surface
-        render surface |> Async.Start
+        
+        state.renderMonitor.State <- Running
+        
+        // Clear the surface
+        Renderer.clear surface
+        
+        // Start rendering
+        render surface state.renderMonitor
+        |> Async.Start
+        
         state.surfaceMutex.Unlock ()
         
-        { state with running = true }
+        { state with renderState = Running }
     | Stop ->
-        { state with running = false; }
+        state.renderMonitor.State <- Stopping
+        { state with renderState = Stopped }
 
 let view (state: State) dispatch =
     DockPanel.create [
@@ -62,13 +81,13 @@ let view (state: State) dispatch =
                     Button.create [
                         Button.classes [ "Primary" ]
                         Button.content "Start"
-                        Button.isEnabled (not state.running)
+                        Button.isEnabled (state.renderState = Stopped)
                         Button.onClick (fun _ -> dispatch Start)
                     ]
                     
                     Button.create [
                         Button.content "Stop"
-                        Button.isEnabled state.running
+                        Button.isEnabled (state.renderState = Running)
                         Button.onClick (fun _ -> dispatch Stop)
                     ]
                 ]
