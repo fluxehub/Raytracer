@@ -24,7 +24,7 @@ module Shell =
         | RenderControlMsg of RendererControl.Msg
 
     let init =
-        let renderControlState = RendererControl.init 1024 512
+        let renderControlState = RendererControl.init 800 600
         { renderState = renderControlState },
         /// If your children controls don't emit any commands
         /// in the init function, you can just return Cmd.none

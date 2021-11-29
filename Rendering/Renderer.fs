@@ -1,13 +1,12 @@
 ﻿module Raytracer.Rendering.Renderer
 
-open System.Threading
-open Raytracer
 open Raytracer.RenderMonitor
-open Raytracer.Renderer
-open Types
+open Raytracer.Rendering
+open Raytracing.Rendering
+open Vector
 open SkiaSharp
 
-let rand = new System.Random()
+let rand = System.Random()
 
 let swap x y (a: _ array) =
     let tmp = a.[x]
@@ -19,12 +18,23 @@ let shuffle a = Array.iteri (fun i _ -> a |> swap i (rand.Next(i, Array.length a
 let clearPoint (x, y) (surface: SKBitmap) =
     surface.SetPixel (x, y, SKColors.Black)
 
-let renderPixel (x, y) i totalPoints (surface: SKBitmap) (monitor: RenderMonitor) =
+let rayColor (ray: Ray) =
+    let normalizedDirection = Vec3.normalize ray.Direction
+    let t = 0.5 * (normalizedDirection.Y + 1.0)
+    (1.0 - t) * { X = 1.0; Y = 1.0; Z = 1.0 } + t * { X = 0.5; Y = 0.7; Z = 1.0 }
+
+let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
     if monitor.GetState() <> Stopping then
         let width = surface.Width
         let height = surface.Height
         
-        let color: Color = { X = (double x) / double (width - 1); Y = (double y) / double (height - 1); Z = 0.25 }
+        let u = (double x) / double (width - 1)
+        let v = (double y) / double (height - 1)
+        let ray =
+            { Origin = camera.Origin
+              Direction = camera.LowerLeftCorner + u * camera.Horizontal + v * camera.Vertical }
+        
+        let color: Color = rayColor ray
         
         surface.SetPixel (x, height - 1 - y, Color.toSKColor color)
         monitor.AddRendered ()

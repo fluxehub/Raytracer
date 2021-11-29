@@ -10,10 +10,12 @@ open Avalonia.FuncUI.DSL
 open Elmish
 open Raytracer
 open Raytracer.RenderMonitor
+open Raytracing.Rendering
 open SkiaSharp
 open Viewport
 open Raytracer.Mutex
 open Raytracer.Rendering
+open Vector
 
 type State = {
     viewportWidth: int
@@ -35,12 +37,18 @@ let init width height =
 
 type Msg = Start | Stop | Finish | Progress of float
 
-// TODO: Dispatch the stopped message
-let render surface renderMonitor =
+let render (surface: SKBitmap) renderMonitor =
     async {
+        let aspectRatio = (double surface.Width) / (double surface.Height)
+        let viewportHeight = 2.0
+        let viewportWidth = aspectRatio * viewportHeight
+        let origin = Vec3.create 0.0 0.0 0.0
+        
+        let camera = Camera.create viewportHeight viewportWidth 1.0 origin
+        
         let points = Renderer.getRenderPoints surface
         points
-        |> Array.mapi (fun i (x, y) -> async { Renderer.renderPixel (x, y) i (Array.length points) surface renderMonitor } )
+        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface camera renderMonitor } )
         |> Async.Parallel
         |> Async.Ignore
         |> Async.RunSynchronously

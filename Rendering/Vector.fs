@@ -1,4 +1,4 @@
-﻿module Raytracer.Renderer.Types
+﻿module Raytracer.Rendering.Vector
 
 open System
 open SkiaSharp
@@ -38,6 +38,9 @@ type Vec3 =
         | _ -> raise <| IndexOutOfRangeException()
 
 module Vec3 =
+    let create x y z =
+        { X = x; Y = y; Z = z }
+        
     let negate v =
         v * -1
         
