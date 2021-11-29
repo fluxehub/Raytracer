@@ -18,7 +18,7 @@ let clearPoint (x, y) (surface: SKBitmap) =
     surface.SetPixel (x, y, SKColors.Black)
 
 let renderPixel (x, y) (surface: SKBitmap) (monitor: RenderMonitor) =
-    if monitor.State = Stopping then
+    if monitor.GetState() = Stopping then
         ()
     else
         let width = surface.Width
@@ -34,7 +34,6 @@ let renderPixel (x, y) (surface: SKBitmap) (monitor: RenderMonitor) =
         
         let color = SKColor (ir, ig, ib, 0xFFuy)
         surface.SetPixel (x, height - 1 - y, color)
-        Thread.Sleep 1
         ()
 
 let getRenderPoints (surface: SKBitmap) =

@@ -21,11 +21,11 @@ module Shell =
         { renderState: RendererControl.State; }
 
     type Msg =
-        | CounterMsg of RendererControl.Msg
+        | RenderControlMsg of RendererControl.Msg
 
     let init =
-        let counterState = RendererControl.init
-        { renderState = counterState },
+        let renderControlState = RendererControl.init 1024 512
+        { renderState = renderControlState },
         /// If your children controls don't emit any commands
         /// in the init function, you can just return Cmd.none
         /// otherwise, you can use a batch operation on all of them
@@ -34,18 +34,18 @@ module Shell =
 
     let update (msg: Msg) (state: State): State * Cmd<_> =
         match msg with
-        | CounterMsg countermsg ->
-            let counterMsg =
-                RendererControl.update countermsg state.renderState
-            { state with renderState = counterMsg },
+        | RenderControlMsg renderMsg ->
+            let renderControlMsg, cmd =
+                RendererControl.update renderMsg state.renderState
+            { state with renderState = renderControlMsg },
             /// map the message to the kind of message 
             /// your child control needs to handle
-            Cmd.none
+            Cmd.map RenderControlMsg cmd
 
-    let view (state: State) (dispatch) =
+    let view (state: State) dispatch =
         DockPanel.create [
             DockPanel.children [
-                RendererControl.view state.renderState (CounterMsg >> dispatch)
+                RendererControl.view state.renderState (RenderControlMsg >> dispatch)
             ]
         ]
 

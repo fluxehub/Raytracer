@@ -4,6 +4,7 @@ open System.Threading
 open Avalonia.Layout
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
+open Elmish
 open Raytracer
 open Raytracer.RenderMonitor
 open SkiaSharp
@@ -19,15 +20,15 @@ type State = {
     renderMonitor: RenderMonitor
 }
 
-let init =
+let init width height =
     { 
-      viewportWidth = 256
-      viewportHeight = 256
-      surfaceMutex = SurfaceMutex(new SKBitmap (256, 256, SKColorType.Bgra8888, SKAlphaType.Unpremul))
+      viewportWidth = width
+      viewportHeight = height
+      surfaceMutex = SurfaceMutex(new SKBitmap (width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul))
       renderState = Stopped
       renderMonitor = RenderMonitor () }
 
-type Msg = Start | Stop
+type Msg = Start | Stop | Finish
 
 // TODO: Dispatch the stopped message
 let render surface renderMonitor =
@@ -39,10 +40,11 @@ let render surface renderMonitor =
         |> Async.Ignore
         |> Async.RunSynchronously
         
-        renderMonitor.State <- Stopped
+        renderMonitor.Finish()
+        return Finish
     }
 
-let update (msg: Msg) (state: State) : State =
+let update (msg: Msg) (state: State) =
     match msg with
     | Start ->
         state.surfaceMutex.Lock () |> ignore
@@ -53,21 +55,19 @@ let update (msg: Msg) (state: State) : State =
         let surface = new SKBitmap (state.viewportWidth, state.viewportHeight, SKColorType.Bgra8888, SKAlphaType.Unpremul)
         state.surfaceMutex.Surface <- surface
         
-        state.renderMonitor.State <- Running
+        state.renderMonitor.Start ()
         
         // Clear the surface
         Renderer.clear surface
         
-        // Start rendering
-        render surface state.renderMonitor
-        |> Async.Start
-        
         state.surfaceMutex.Unlock ()
         
-        { state with renderState = Running }
+        { state with renderState = Running }, Cmd.OfAsync.result (render surface state.renderMonitor)
     | Stop ->
-        state.renderMonitor.State <- Stopping
-        { state with renderState = Stopped }
+        state.renderMonitor.Stop ()
+        { state with renderState = Stopping }, Cmd.none
+    | Finish ->
+        { state with renderState = Stopped }, Cmd.none
 
 let view (state: State) dispatch =
     DockPanel.create [

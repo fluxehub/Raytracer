@@ -6,5 +6,18 @@ type RenderState =
     | Stopped
 
 type RenderMonitor() =
-    member val State: RenderState = Stopped with get, set
-    member val Progress = 0.0 with get, set
+    let mutable state = Stopped
+    let mutable progress = 0.0
+    
+    member this.Start () =
+        state <- Running
+        progress <- 0.0
+    
+    member this.Stop () =
+        state <- Stopping
+    
+    member this.Finish () =
+        state <- Stopped
+        
+    member this.GetState() =
+        state

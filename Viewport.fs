@@ -9,7 +9,6 @@ open Avalonia.Threading
 open Raytracer.Mutex
 open SkiaSharp
 
-
 type Viewport() =
     inherit Control(ClipToBounds = true)
     
