@@ -1,6 +1,9 @@
 module Raytracer.RendererControl
 
 open System.Threading
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -17,6 +20,7 @@ type State = {
     viewportHeight: int
     surfaceMutex: SurfaceMutex
     renderState: RenderState
+    progress: float
     renderMonitor: RenderMonitor
 }
 
@@ -26,16 +30,17 @@ let init width height =
       viewportHeight = height
       surfaceMutex = SurfaceMutex(new SKBitmap (width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul))
       renderState = Stopped
+      progress = 0.0
       renderMonitor = RenderMonitor () }
 
-type Msg = Start | Stop | Finish
+type Msg = Start | Stop | Finish | Progress of float
 
 // TODO: Dispatch the stopped message
 let render surface renderMonitor =
     async {
         let points = Renderer.getRenderPoints surface
         points
-        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface renderMonitor } )
+        |> Array.mapi (fun i (x, y) -> async { Renderer.renderPixel (x, y) i (Array.length points) surface renderMonitor } )
         |> Async.Parallel
         |> Async.Ignore
         |> Async.RunSynchronously
@@ -62,14 +67,19 @@ let update (msg: Msg) (state: State) =
         
         state.surfaceMutex.Unlock ()
         
+        state.renderMonitor.SetTotal <| state.viewportWidth * state.viewportHeight
+        
         { state with renderState = Running }, Cmd.OfAsync.result (render surface state.renderMonitor)
     | Stop ->
         state.renderMonitor.Stop ()
         { state with renderState = Stopping }, Cmd.none
     | Finish ->
         { state with renderState = Stopped }, Cmd.none
+    | Progress amount ->
+        { state with progress = amount }, Cmd.none
 
-let view (state: State) dispatch =
+let view (state: State) (dispatch: Dispatch<Msg>) =
+    state.renderMonitor.SetDispatch (fun amount -> dispatch (Progress amount))
     DockPanel.create [
         DockPanel.children [
             StackPanel.create [
@@ -77,7 +87,7 @@ let view (state: State) dispatch =
                 StackPanel.spacing 8.0
                 StackPanel.margin (8.0, 5.0)
                 StackPanel.orientation Orientation.Horizontal
-                StackPanel.children [
+                StackPanel.children ([
                     Button.create [
                         Button.content "Start"
                         Button.isEnabled (state.renderState = Stopped)
@@ -89,7 +99,10 @@ let view (state: State) dispatch =
                         Button.isEnabled (state.renderState = Running)
                         Button.onClick (fun _ -> dispatch Stop)
                     ]
-                ]
+                ] @ [if state.renderState = Running then
+                        ProgressBar.create [
+                            ProgressBar.value state.progress
+                        ]])
             ]
             
             Border.create [

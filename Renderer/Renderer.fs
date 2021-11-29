@@ -17,10 +17,8 @@ let shuffle a = Array.iteri (fun i _ -> a |> swap i (rand.Next(i, Array.length a
 let clearPoint (x, y) (surface: SKBitmap) =
     surface.SetPixel (x, y, SKColors.Black)
 
-let renderPixel (x, y) (surface: SKBitmap) (monitor: RenderMonitor) =
-    if monitor.GetState() = Stopping then
-        ()
-    else
+let renderPixel (x, y) i totalPoints (surface: SKBitmap) (monitor: RenderMonitor) =
+    if monitor.GetState() <> Stopping then
         let width = surface.Width
         let height = surface.Height
         
@@ -34,8 +32,8 @@ let renderPixel (x, y) (surface: SKBitmap) (monitor: RenderMonitor) =
         
         let color = SKColor (ir, ig, ib, 0xFFuy)
         surface.SetPixel (x, height - 1 - y, color)
-        ()
-
+        monitor.AddRendered ()
+        
 let getRenderPoints (surface: SKBitmap) =
     let width = surface.Width
     let height = surface.Height
