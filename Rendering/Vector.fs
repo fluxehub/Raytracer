@@ -1,34 +1,46 @@
 ﻿module Raytracer.Rendering.Vector
 
 open System
+open System.Runtime.Intrinsics
 open SkiaSharp
+open MathSharp
 
-type Vec3 =
-    { X: double; Y: double; Z: double }
+type Vector3 (v: Vector256<float>) =
+    member val Vector = v with get, set
     
-    static member (+) (a, b) =
-        { X = a.X + b.X; Y = a.Y + b.Y; Z = a.Z + b.Z }
+    new (x: float, y: float, z: float) =
+        Vector3 (Vector256.Create (x, y, z, 0.0))
     
-    static member (-) (a, b) =
-        { X = a.X - b.X; Y = a.Y - b.Y; Z = a.Z - b.Z }
+    member this.X
+        with get () = this.Vector.GetElement 0
     
-    static member (*) (a, b) =
-        { X = a.X * b.X; Y = a.Y * b.Y; Z = a.Z * b.Z }
+    member this.Y
+        with get () = this.Vector.GetElement 1
     
-    static member (*) (a, b) =
-        { X = a.X * b; Y = a.Y * b; Z = a.Z * b }
+    member this.Z
+        with get () = this.Vector.GetElement 2
+    
+    static member (+) (a: Vector3, b: Vector3) =
+        Vector3 (Vector.Add (a.Vector, b.Vector))
+    
+    static member (-) (a: Vector3, b: Vector3) =
+        Vector3 (Vector.Subtract (a.Vector, b.Vector))
+    
+    static member (*) (a: Vector3, b: Vector3) =
+        Vector3 (Vector.Multiply (a.Vector, b.Vector))
+    
+    static member (*) (a: Vector3, b: float) =
+        Vector3 (Vector.Multiply (a.Vector, b))
         
-    static member (*) (b, a) =
-        { X = a.X * b; Y = a.Y * b; Z = a.Z * b }
+    static member (*) (a: float, b: Vector3) =
+        Vector3 (Vector.Multiply (b.Vector, a))
     
-    static member (/) (a, b) =
-        { X = a.X / b.X; Y = a.Y / b.Y; Z = a.Z / b.Z }
+    static member (/) (a: Vector3, b: Vector3) =
+        Vector3 (Vector.Divide (a.Vector, b.Vector))
     
-    static member (/) (a, b) =
-        { X = a.X / b; Y = a.Y / b; Z = a.Z / b }
+    static member (/) (a: Vector3, b: float) =
+        a * (1.0 / b)
     
-    static member (/) (b, a) =
-        { X = a.X / b; Y = a.Y / b; Z = a.Z / b }
         
     member this.Item with get (i: int) =
         match i with
@@ -37,31 +49,29 @@ type Vec3 =
         | 2 -> this.Z
         | _ -> raise <| IndexOutOfRangeException()
 
-module Vec3 =
-    let create x y z =
-        { X = x; Y = y; Z = z }
+module Vector3 =
+    let create x y z = Vector3 (x, y, z)
         
-    let negate v =
-        v * -1
+    let negate (v: Vector3) = v * -1.0
         
-    let length_squared v =
-        v.X ** 2.0 + v.Y ** 2.0 + v.Z ** 2.0
+    let lengthSquared (v: Vector3) =
+        Vector.LengthSquared3D v.Vector |> Vector256.ToScalar
      
-    let length v =
-        length_squared v |> Math.Sqrt
+    let length (v: Vector3) =
+        Vector.Length3D v.Vector |> Vector256.ToScalar
         
-    let dot u v =
-        u.X * v.X + u.Y * v.Y + u.Z * v.Z
+    let dot (u: Vector3) (v: Vector3) =
+        Vector.DotProduct3D (u.Vector, v.Vector) |> Vector256.ToScalar
     
-    let cross u v =
-        { X = u.Y * v.Z - u.Z * v.Y; Y = u.Z * v.X - u.X * v.Z; Z = u.X * v.Y - u.Y * v.X }
+    let cross (u: Vector3) (v: Vector3) =
+        Vector3 (Vector.CrossProduct3D (u.Vector, v.Vector))
     
-    let normalize v =
-        v / length v
+    let normalize (v: Vector3) =
+        Vector3 (Vector.Normalize3D v.Vector)
         
-type Point3 = Vec3
+type Point3 = Vector3
 
-type Color = Vec3
+type Color = Vector3
 
 module Color =
     let toSKColor (color: Color) =

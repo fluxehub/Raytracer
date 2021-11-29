@@ -38,15 +38,16 @@ let init width height =
 type Msg = Start | Stop | Finish | Progress of float
 
 let render (surface: SKBitmap) renderMonitor =
+    let aspectRatio = (double surface.Width) / (double surface.Height)
+    let viewportHeight = 2.0
+    let viewportWidth = aspectRatio * viewportHeight
+    let origin: Point3 = Vector3.create 0.0 0.0 0.0
+    
+    let camera = Camera.create viewportHeight viewportWidth 1.0 origin
+    
+    let points = Renderer.getRenderPoints surface
+    
     async {
-        let aspectRatio = (double surface.Width) / (double surface.Height)
-        let viewportHeight = 2.0
-        let viewportWidth = aspectRatio * viewportHeight
-        let origin = Vec3.create 0.0 0.0 0.0
-        
-        let camera = Camera.create viewportHeight viewportWidth 1.0 origin
-        
-        let points = Renderer.getRenderPoints surface
         points
         |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface camera renderMonitor } )
         |> Async.Parallel
@@ -54,6 +55,7 @@ let render (surface: SKBitmap) renderMonitor =
         |> Async.RunSynchronously
         
         renderMonitor.Finish()
+        
         return Finish
     }
 

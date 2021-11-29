@@ -1,5 +1,6 @@
 ﻿module Raytracer.Rendering.Renderer
 
+open System.Threading
 open Raytracer.RenderMonitor
 open Raytracer.Rendering
 open Raytracing.Rendering
@@ -19,9 +20,9 @@ let clearPoint (x, y) (surface: SKBitmap) =
     surface.SetPixel (x, y, SKColors.Black)
 
 let rayColor (ray: Ray) =
-    let normalizedDirection = Vec3.normalize ray.Direction
+    let normalizedDirection = Vector3.normalize ray.Direction
     let t = 0.5 * (normalizedDirection.Y + 1.0)
-    (1.0 - t) * { X = 1.0; Y = 1.0; Z = 1.0 } + t * { X = 0.5; Y = 0.7; Z = 1.0 }
+    (1.0 - t) * (Vector3.create 1.0 1.0 1.0) + t * (Vector3.create 0.5 0.7 1.0)
 
 let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
     if monitor.GetState() <> Stopping then
