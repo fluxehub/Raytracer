@@ -41,7 +41,6 @@ type Vector3 (v: Vector256<float>) =
     static member (/) (a: Vector3, b: float) =
         a * (1.0 / b)
     
-        
     member this.Item with get (i: int) =
         match i with
         | 0 -> this.X
@@ -68,6 +67,10 @@ module Vector3 =
     
     let normalize (v: Vector3) =
         Vector3 (Vector.Normalize3D v.Vector)
+    
+    let lerp (u: Vector3) (v: Vector3) (weight: float) =
+        Vector3 (Vector.Lerp (u.Vector, v.Vector, weight))
+    
         
 type Point3 = Vector3
 
