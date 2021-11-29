@@ -8,6 +8,7 @@
     <ItemGroup>
         <Compile Include="Mutex.fs" />
         <Compile Include="RenderMonitor.fs" />
+        <Compile Include="Renderer\Types.fs" />
         <Compile Include="Renderer\Renderer.fs" />
         <Compile Include="Viewport.fs" />
         <Compile Include="RendererControl.fs" />

@@ -3,6 +3,8 @@
 open System.Threading
 open Raytracer
 open Raytracer.RenderMonitor
+open Raytracer.Renderer
+open Types
 open SkiaSharp
 
 let rand = new System.Random()
@@ -22,16 +24,9 @@ let renderPixel (x, y) i totalPoints (surface: SKBitmap) (monitor: RenderMonitor
         let width = surface.Width
         let height = surface.Height
         
-        let r = (double x) / double (width - 1)
-        let g = (double y) / double (height - 1)
-        let b = 0.25
+        let color: Color = { X = (double x) / double (width - 1); Y = (double y) / double (height - 1); Z = 0.25 }
         
-        let ir = byte (r * 255.999)
-        let ig = byte (g * 255.999)
-        let ib = byte (b * 255.999)
-        
-        let color = SKColor (ir, ig, ib, 0xFFuy)
-        surface.SetPixel (x, height - 1 - y, color)
+        surface.SetPixel (x, height - 1 - y, Color.toSKColor color)
         monitor.AddRendered ()
         
 let getRenderPoints (surface: SKBitmap) =
