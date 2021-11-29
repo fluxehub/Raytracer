@@ -56,14 +56,14 @@ module Shell =
     type MainWindow() as this =
         inherit HostWindow()
         do
-            base.Title <- "Full App"
+            base.Title <- "Raytracer"
             base.Width <- 1000.0
             base.Height <- 800.0
             base.MinWidth <- 800.0
             base.MinHeight <- 600.0
 
-            this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
-            //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
+            // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
+            // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
             Elmish.Program.mkProgram (fun () -> init) update view
             |> Program.withHost this

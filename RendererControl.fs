@@ -79,7 +79,6 @@ let view (state: State) dispatch =
                 StackPanel.orientation Orientation.Horizontal
                 StackPanel.children [
                     Button.create [
-                        Button.classes [ "Primary" ]
                         Button.content "Start"
                         Button.isEnabled (state.renderState = Stopped)
                         Button.onClick (fun _ -> dispatch Start)
