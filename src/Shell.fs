@@ -7,17 +7,13 @@ namespace Raytracer
 /// to see how to handle different kinds of "*child*" controls
 module Shell =
     open Elmish
-    open Avalonia
     open Avalonia.Controls
-    open Avalonia.Input
     open Avalonia.FuncUI.DSL
     open Avalonia.FuncUI
-    open Avalonia.FuncUI.Builder
     open Avalonia.FuncUI.Components.Hosts
     open Avalonia.FuncUI.Elmish
 
     type State =
-        /// store the child state in your main state
         { renderState: RendererControl.State; }
 
     type Msg =
@@ -26,10 +22,6 @@ module Shell =
     let init =
         let renderControlState = RendererControl.init 800 600
         { renderState = renderControlState },
-        /// If your children controls don't emit any commands
-        /// in the init function, you can just return Cmd.none
-        /// otherwise, you can use a batch operation on all of them
-        /// you can add more init commands as you need
         Cmd.none
 
     let update (msg: Msg) (state: State): State * Cmd<_> =
@@ -38,8 +30,6 @@ module Shell =
             let renderControlMsg, cmd =
                 RendererControl.update renderMsg state.renderState
             { state with renderState = renderControlMsg },
-            /// map the message to the kind of message 
-            /// your child control needs to handle
             Cmd.map RenderControlMsg cmd
 
     let view (state: State) dispatch =
@@ -49,10 +39,6 @@ module Shell =
             ]
         ]
 
-    /// This is the main window of your application
-    /// you can do all sort of useful things here like setting heights and widths
-    /// as well as attaching your dev tools that can be super useful when developing with
-    /// Avalonia
     type MainWindow() as this =
         inherit HostWindow()
         do

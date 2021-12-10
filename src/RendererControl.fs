@@ -35,7 +35,9 @@ let init width height =
       progress = 0.0
       renderMonitor = RenderMonitor () }
 
-type Msg = Start | Stop | Finish | Progress of float
+type Msg =
+    | Start | Stop | Finish
+    | Progress of float
 
 let render (surface: SKBitmap) renderMonitor =
     let aspectRatio = (double surface.Width) / (double surface.Height)

@@ -2,20 +2,20 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Mutex.fs" />
-        <Compile Include="RenderMonitor.fs" />
-        <Compile Include="Rendering\Vector.fs" />
-        <Compile Include="Rendering\Ray.fs" />
-        <Compile Include="Rendering\Camera.fs" />
-        <Compile Include="Rendering\Renderer.fs" />
-        <Compile Include="Viewport.fs" />
-        <Compile Include="RendererControl.fs" />
-        <Compile Include="Shell.fs" />
-        <Compile Include="Program.fs" />
+        <Compile Include="src\Mutex.fs" />
+        <Compile Include="src\RenderMonitor.fs" />
+        <Compile Include="src\Rendering\Vector.fs" />
+        <Compile Include="src\Rendering\Ray.fs" />
+        <Compile Include="src\Rendering\Camera.fs" />
+        <Compile Include="src\Rendering\Renderer.fs" />
+        <Compile Include="src\Viewport.fs" />
+        <Compile Include="src\RendererControl.fs" />
+        <Compile Include="src\Shell.fs" />
+        <Compile Include="src\Program.fs" />
         <AvaloniaResource Include="**\*.xaml" />
     </ItemGroup>
     

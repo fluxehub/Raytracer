@@ -2,7 +2,6 @@
 
 open Raytracer.Rendering
 open Vector
-open MathSharp
 
 type Ray =
     { Origin: Point3

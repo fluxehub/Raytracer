@@ -1,6 +1,7 @@
 ﻿module Raytracer.Rendering.Renderer
 
-open System.Threading
+open System.Runtime.InteropServices
+open Microsoft.FSharp.NativeInterop
 open Raytracer.RenderMonitor
 open Raytracer.Rendering
 open Raytracing.Rendering
@@ -16,15 +17,11 @@ let swap x y (a: _ array) =
 
 let shuffle a = Array.iteri (fun i _ -> a |> swap i (rand.Next(i, Array.length a))) a
 
-let clearPoint (x, y) (surface: SKBitmap) =
-    surface.SetPixel (x, y, SKColors.Black)
-
 let rayColor (ray: Ray) =
     let normalizedDirection = Vector3.normalize ray.Direction
     let t = 0.5 * (normalizedDirection.Y + 1.0)
     Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
     
-
 let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
     if monitor.GetState() <> Stopping then
         let width = surface.Width
@@ -50,4 +47,10 @@ let getRenderPoints (surface: SKBitmap) =
     points
 
 let clear (surface: SKBitmap) =
-    Array.iter (fun (x, y) -> clearPoint (x, y) surface) (getRenderPoints surface)
+    let pixelPtr = surface.GetPixels ()
+    let cleared =
+        [| for i in 0 .. (surface.Width * surface.Height * surface.BytesPerPixel - 1) do
+               if i % 4 = 3 then 0xFFuy else 0x00uy |]
+        
+    Marshal.Copy (cleared, 0, pixelPtr, (Array.length cleared))
+    ()
