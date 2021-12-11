@@ -18,10 +18,26 @@ let swap x y (a: _ array) =
 let shuffle a =
     Array.iteri (fun i _ -> a |> swap i (rand.Next(i, Array.length a))) a
 
-let rayColor (ray: Ray) =
-    let normalizedDirection = Vector3.normalize ray.Direction
-    let t = 0.5 * (normalizedDirection.Y + 1.0)
-    Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
+let hitSphere (center: Point3) radius (ray: Ray) =
+    let oc = ray.Origin - center
+    let a = Vector3.lengthSquared ray.Direction
+    let halfB = Vector3.dot oc ray.Direction
+    let c = (Vector3.lengthSquared oc) - radius ** 2.0
+    let d = halfB ** 2.0 - a * c
+    if d < 0.0 then
+        -1.0
+    else
+        -halfB - sqrt(d) / a
+
+let rayColor (ray: Ray): Color =
+    let hit = hitSphere (Vector3.create 0.0 0.0 -1.0) 0.5 ray
+    if hit > 0.0 then
+        let n = Vector3.normalize ((Ray.at hit ray) + Vector3.create 0.0 0.0 1.0)
+        0.5 * (n + Vector3.create 1.0 1.0 1.0)
+    else
+        let normalizedDirection = Vector3.normalize ray.Direction
+        let t = 0.5 * (normalizedDirection.Y + 1.0)
+        Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
 
 let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
     if monitor.GetState() = Stopping then
