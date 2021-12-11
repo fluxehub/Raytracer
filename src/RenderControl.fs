@@ -1,42 +1,37 @@
-module Raytracer.RendererControl
+module Raytracer.RenderControl
 
-open System.Threading
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Controls
-open Avalonia.FuncUI.DSL
 open Elmish
 open Raytracer
 open Raytracer.RenderMonitor
 open Raytracing.Rendering
 open SkiaSharp
 open Viewport
-open Raytracer.Mutex
 open Raytracer.Rendering
 open Vector
 
-type State = {
-    viewportWidth: int
-    viewportHeight: int
-    surfaceMutex: SurfaceMutex
-    renderState: RenderState
-    progress: float
-    renderMonitor: RenderMonitor
-}
+type State =
+    { viewportWidth: int
+      viewportHeight: int
+      surfaceMutex: SurfaceLock
+      renderState: RenderState
+      progress: float
+      renderMonitor: RenderMonitor }
 
 let init width height =
-    { 
-      viewportWidth = width
+    { viewportWidth = width
       viewportHeight = height
-      surfaceMutex = SurfaceMutex(new SKBitmap (width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul))
+      surfaceMutex = SurfaceLock(new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul))
       renderState = Stopped
       progress = 0.0
-      renderMonitor = RenderMonitor () }
+      renderMonitor = RenderMonitor() }
 
 type Msg =
-    | Start | Stop | Finish
+    | Start
+    | Stop
+    | Finish
     | Progress of float
 
 let render (surface: SKBitmap) renderMonitor =
@@ -44,54 +39,56 @@ let render (surface: SKBitmap) renderMonitor =
     let viewportHeight = 2.0
     let viewportWidth = aspectRatio * viewportHeight
     let origin: Point3 = Vector3.create 0.0 0.0 0.0
-    
+
     let camera = Camera.create viewportHeight viewportWidth 1.0 origin
-    
+
     let points = Renderer.getRenderPoints surface
-    
+
     async {
         points
-        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface camera renderMonitor } )
+        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface camera renderMonitor })
         |> Async.Parallel
         |> Async.Ignore
         |> Async.RunSynchronously
-        
+
         renderMonitor.Finish()
-        
+
         return Finish
     }
 
 let update (msg: Msg) (state: State) =
     match msg with
     | Start ->
-        state.surfaceMutex.Lock () |> ignore
-        
+        state.surfaceMutex.Lock() |> ignore
+
         let surface = state.surfaceMutex.Surface
-        surface.Dispose ()
-        
-        let surface = new SKBitmap (state.viewportWidth, state.viewportHeight, SKColorType.Bgra8888, SKAlphaType.Unpremul)
+        surface.Dispose()
+
+        let surface =
+            new SKBitmap(state.viewportWidth, state.viewportHeight, SKColorType.Bgra8888, SKAlphaType.Unpremul)
+
         state.surfaceMutex.Surface <- surface
-        
-        state.renderMonitor.Start ()
-        
+
+        state.renderMonitor.Start()
+
         // Clear the surface
         Renderer.clear surface
-        
-        state.surfaceMutex.Unlock ()
-        
-        state.renderMonitor.SetTotal <| state.viewportWidth * state.viewportHeight
-        
+
+        state.surfaceMutex.Unlock()
+
+        state.renderMonitor.SetTotal
+        <| state.viewportWidth * state.viewportHeight
+
         { state with renderState = Running }, Cmd.OfAsync.result (render surface state.renderMonitor)
     | Stop ->
-        state.renderMonitor.Stop ()
+        state.renderMonitor.Stop()
         { state with renderState = Stopping }, Cmd.none
-    | Finish ->
-        { state with renderState = Stopped }, Cmd.none
-    | Progress amount ->
-        { state with progress = amount }, Cmd.none
+    | Finish -> { state with renderState = Stopped }, Cmd.none
+    | Progress amount -> { state with progress = amount }, Cmd.none
 
 let view (state: State) (dispatch: Dispatch<Msg>) =
-    state.renderMonitor.SetDispatch (fun amount -> dispatch (Progress amount))
+    state.renderMonitor.SetDispatch(fun amount -> dispatch (Progress amount))
+
     DockPanel.create [
         DockPanel.children [
             StackPanel.create [

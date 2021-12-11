@@ -15,8 +15,13 @@ module Camera =
     let create height width focalLength (origin: Point3) =
         let horizontal = Vector3.create width 0.0 0.0
         let vertical = Vector3.create 0.0 height 0.0
-        let lowerLeftCorner = origin - horizontal / 2.0 - vertical / 2.0 - Vector3.create 0.0 0.0 focalLength
-        
+
+        let lowerLeftCorner =
+            origin
+            - horizontal / 2.0
+            - vertical / 2.0
+            - Vector3.create 0.0 0.0 focalLength
+
         { ViewportWidth = width
           ViewportHeight = height
           FocalLength = focalLength

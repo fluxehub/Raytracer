@@ -1,10 +1,10 @@
-﻿module Raytracer.Mutex
+﻿namespace Raytracer
 
 open System
 open System.Threading
 open SkiaSharp
 
-type SurfaceMutex(surface: SKBitmap) =
+type SurfaceLock(surface: SKBitmap) =
     static let mutex = new Mutex()
     member val Surface = surface with get, set
     

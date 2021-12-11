@@ -13,34 +13,26 @@ module Shell =
     open Avalonia.FuncUI.Components.Hosts
     open Avalonia.FuncUI.Elmish
 
-    type State =
-        { renderState: RendererControl.State; }
+    type State = { renderState: RenderControl.State }
 
-    type Msg =
-        | RenderControlMsg of RendererControl.Msg
+    type Msg = RenderControlMsg of RenderControl.Msg
 
     let init =
-        let renderControlState = RendererControl.init 800 600
-        { renderState = renderControlState },
-        Cmd.none
+        let renderControlState = RenderControl.init 800 600
+        { renderState = renderControlState }, Cmd.none
 
-    let update (msg: Msg) (state: State): State * Cmd<_> =
+    let update (msg: Msg) (state: State) : State * Cmd<_> =
         match msg with
         | RenderControlMsg renderMsg ->
-            let renderControlMsg, cmd =
-                RendererControl.update renderMsg state.renderState
-            { state with renderState = renderControlMsg },
-            Cmd.map RenderControlMsg cmd
+            let renderControlMsg, cmd = RenderControl.update renderMsg state.renderState
+            { state with renderState = renderControlMsg }, Cmd.map RenderControlMsg cmd
 
     let view (state: State) dispatch =
-        DockPanel.create [
-            DockPanel.children [
-                RendererControl.view state.renderState (RenderControlMsg >> dispatch)
-            ]
-        ]
+        DockPanel.create [ DockPanel.children [ RenderControl.view state.renderState (RenderControlMsg >> dispatch) ] ]
 
     type MainWindow() as this =
         inherit HostWindow()
+
         do
             base.Title <- "Raytracer"
             base.Width <- 1000.0
