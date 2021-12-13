@@ -20,6 +20,9 @@ type Vector3(v: Vector256<float>) =
 
     static member (-)(a: Vector3, b: Vector3) =
         Vector3(Vector.Subtract(a.Vector, b.Vector))
+        
+    static member (~-)(a: Vector3) =
+        Vector3(Vector.Negate(a.Vector))
 
     static member (*)(a: Vector3, b: Vector3) =
         Vector3(Vector.Multiply(a.Vector, b.Vector))

@@ -29,15 +29,15 @@ let hitSphere (center: Point3) radius (ray: Ray) =
     else
         -halfB - sqrt(d) / a
 
-let rayColor (ray: Ray): Color =
-    let hit = hitSphere (Vector3.create 0.0 0.0 -1.0) 0.5 ray
-    if hit > 0.0 then
-        let n = Vector3.normalize ((Ray.at hit ray) + Vector3.create 0.0 0.0 1.0)
-        0.5 * (n + Vector3.create 1.0 1.0 1.0)
-    else
-        let normalizedDirection = Vector3.normalize ray.Direction
-        let t = 0.5 * (normalizedDirection.Y + 1.0)
-        Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
+let drawBackground ray =
+    let normalizedDirection = Vector3.normalize ray.Direction
+    let t = 0.5 * (normalizedDirection.Y + 1.0)
+    Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
+
+let rayColor entities ray: Color =
+    match Entity.hitList ray 0.0 infinity entities with
+    | Some hit -> 0.5 * (hit.Normal + Vector3.create 1.0 1.0 1.0)
+    | None -> drawBackground ray
 
 let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
     if monitor.GetState() <> Stopping then
@@ -53,8 +53,12 @@ let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMoni
                 camera.LowerLeftCorner
                 + u * camera.Horizontal
                 + v * camera.Vertical }
-
-        let color: Color = rayColor ray
+        
+        let entities =
+            [ Sphere (Vector3.create 0.0 0.0 -1.0, 0.5)
+              Sphere (Vector3.create 0.0 -100.5 -1.0, 100.0) ]
+        
+        let color: Color = ray |> rayColor entities
 
         surface.SetPixel(x, height - 1 - y, Color.toSKColor color)
         monitor.AddRendered()

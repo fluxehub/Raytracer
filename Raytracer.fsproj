@@ -11,6 +11,7 @@
         <Compile Include="src\Rendering\Vector.fs" />
         <Compile Include="src\Rendering\Ray.fs" />
         <Compile Include="src\Rendering\Camera.fs" />
+        <Compile Include="src\Rendering\Entity.fs" />
         <Compile Include="src\Rendering\Renderer.fs" />
         <Compile Include="src\Viewport.fs" />
         <Compile Include="src\RenderControl.fs" />
