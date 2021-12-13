@@ -40,26 +40,24 @@ let rayColor (ray: Ray): Color =
         Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
 
 let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
-    if monitor.GetState() = Stopping then
-        ()
-     
-    let width = surface.Width
-    let height = surface.Height
+    if monitor.GetState() <> Stopping then
+        let width = surface.Width
+        let height = surface.Height
 
-    let u = (double x) / double (width - 1)
-    let v = (double y) / double (height - 1)
+        let u = (double x) / double (width - 1)
+        let v = (double y) / double (height - 1)
 
-    let ray =
-        { Origin = camera.Origin
-          Direction =
-            camera.LowerLeftCorner
-            + u * camera.Horizontal
-            + v * camera.Vertical }
+        let ray =
+            { Origin = camera.Origin
+              Direction =
+                camera.LowerLeftCorner
+                + u * camera.Horizontal
+                + v * camera.Vertical }
 
-    let color: Color = rayColor ray
+        let color: Color = rayColor ray
 
-    surface.SetPixel(x, height - 1 - y, Color.toSKColor color)
-    monitor.AddRendered()
+        surface.SetPixel(x, height - 1 - y, Color.toSKColor color)
+        monitor.AddRendered()
 
 let getRenderPoints (surface: SKBitmap) =
     let width = surface.Width
