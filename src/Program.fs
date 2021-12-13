@@ -3,6 +3,7 @@ namespace Raytracer
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
+open Avalonia.Media
 
 type App() =
     inherit Application()
@@ -16,6 +17,7 @@ type App() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
             desktopLifetime.MainWindow <- Shell.MainWindow()
+            desktopLifetime.MainWindow.FontFamily <- FontFamily("Comic Sans MS")
         | _ -> ()
 
 module Program =

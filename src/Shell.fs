@@ -1,10 +1,5 @@
 namespace Raytracer
 
-/// This is the main module of your application
-/// here you handle all of your child pages as well as their
-/// messages and their updates, useful to update multiple parts
-/// of your application, Please refer to the `view` function
-/// to see how to handle different kinds of "*child*" controls
 module Shell =
     open Elmish
     open Avalonia.Controls
@@ -28,7 +23,9 @@ module Shell =
             { state with renderState = renderControlMsg }, Cmd.map RenderControlMsg cmd
 
     let view (state: State) dispatch =
-        DockPanel.create [ DockPanel.children [ RenderControl.view state.renderState (RenderControlMsg >> dispatch) ] ]
+        DockPanel.create [
+            DockPanel.children [ RenderControl.view state.renderState (RenderControlMsg >> dispatch) ]
+        ]
 
     type MainWindow() as this =
         inherit HostWindow()
