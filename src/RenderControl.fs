@@ -115,7 +115,7 @@ let view (state: State) (dispatch: Dispatch<Msg>) =
             ]
             
             Border.create [
-                Border.borderBrush "Black" 
+                Border.borderBrush "#33ffffff"
                 Border.borderThickness 1.0
                 Border.height (float state.viewportHeight)
                 Border.width (float state.viewportWidth)
