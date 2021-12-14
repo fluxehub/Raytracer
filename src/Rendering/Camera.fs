@@ -1,6 +1,6 @@
-﻿namespace Raytracing.Rendering
+﻿namespace Raytracer.Rendering
 
-open Raytracer.Rendering.Vector
+open Raytracer.Rendering
 
 type Camera =
     { ViewportHeight: double
@@ -29,3 +29,11 @@ module Camera =
           Horizontal = horizontal
           Vertical = vertical
           LowerLeftCorner = lowerLeftCorner }
+
+    let getRay (u: float, v: float) camera : Ray =
+        { Origin = camera.Origin
+          Direction =
+            camera.LowerLeftCorner
+            + u * camera.Horizontal
+            + v * camera.Vertical
+            - camera.Origin }

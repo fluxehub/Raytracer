@@ -6,11 +6,9 @@ open Avalonia.Controls
 open Elmish
 open Raytracer
 open Raytracer.RenderMonitor
-open Raytracing.Rendering
 open SkiaSharp
 open Viewport
 open Raytracer.Rendering
-open Vector
 
 type State =
     { viewportWidth: int
@@ -46,7 +44,7 @@ let render (surface: SKBitmap) renderMonitor =
 
     async {
         points
-        |> Array.map (fun (x, y) -> async { Renderer.renderPixel (x, y) surface camera renderMonitor })
+        |> Array.map (Renderer.renderPixel surface camera renderMonitor)
         |> Async.Parallel
         |> Async.Ignore
         |> Async.RunSynchronously

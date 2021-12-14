@@ -1,11 +1,10 @@
 ﻿module Raytracer.Rendering.Renderer
 
+open System
 open System.Runtime.InteropServices
-open Microsoft.FSharp.NativeInterop
+open System.Security.Cryptography
 open Raytracer.RenderMonitor
 open Raytracer.Rendering
-open Raytracing.Rendering
-open Vector
 open SkiaSharp
 
 let rand = System.Random()
@@ -34,34 +33,49 @@ let drawBackground ray =
     let t = 0.5 * (normalizedDirection.Y + 1.0)
     Vector3.lerp (Vector3.create 1.0 1.0 1.0) (Vector3.create 0.5 0.7 1.0) t
 
-let rayColor entities ray: Color =
+let rayColor entities (ray: Ray): Color =
     match Entity.hitList ray 0.0 infinity entities with
     | Some hit -> 0.5 * (hit.Normal + Vector3.create 1.0 1.0 1.0)
     | None -> drawBackground ray
+let renderSample entities camera (u, v) =
+    Camera.getRay (u, v) camera |> rayColor entities
 
-let renderPixel (x, y) (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) =
-    if monitor.GetState() <> Stopping then
-        let width = surface.Width
-        let height = surface.Height
+let renderPixel (surface: SKBitmap) (camera: Camera) (monitor: RenderMonitor) (x, y) =
+    async {
+        if monitor.GetState() <> Stopping then
+            let random = Random()
 
-        let u = (double x) / double (width - 1)
-        let v = (double y) / double (height - 1)
+            let width = surface.Width |> float
+            let height = surface.Height |> float
 
-        let ray =
-            { Origin = camera.Origin
-              Direction =
-                camera.LowerLeftCorner
-                + u * camera.Horizontal
-                + v * camera.Vertical }
-        
-        let entities =
-            [ Sphere (Vector3.create 0.0 0.0 -1.0, 0.5)
-              Sphere (Vector3.create 0.0 -100.5 -1.0, 100.0) ]
-        
-        let color: Color = ray |> rayColor entities
+            let sampleCount = 50
 
-        surface.SetPixel(x, height - 1 - y, Color.toSKColor color)
-        monitor.AddRendered()
+            let entities =
+                [ Sphere(Vector3.create 0.0 0.0 -1.0, 0.5)
+                  Sphere(Vector3.create 0.0 -100.5 -1.0, 100.0) ]
+
+            let samples =
+                [ for _ in 0 .. sampleCount - 1 do
+                      let u =
+                          ((float x) + random.NextDouble()) / (width - 1.0)
+                          |> float
+
+                      let v =
+                          ((float y) + random.NextDouble()) / (height - 1.0)
+                          |> float
+
+                      (u, v) ]
+
+            let color =
+                samples
+                |> List.map (renderSample entities camera)
+                |> List.fold (+) (Vector3.create 0.0 0.0 0.0)
+
+            color
+            |> Color.write (x, (int height) - y - 1) surface sampleCount
+
+            monitor.AddRendered()
+    }
 
 let getRenderPoints (surface: SKBitmap) =
     let width = surface.Width

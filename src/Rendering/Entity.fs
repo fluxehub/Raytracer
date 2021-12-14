@@ -1,6 +1,6 @@
 namespace Raytracer.Rendering
 
-open Vector
+open Raytracer.Rendering
 
 type Center = Point3
 type Radius = float
@@ -14,12 +14,12 @@ type HitResult =
 type Entity = Sphere of Center * Radius
 
 module Entity =
-    let private createHitResult ray outwardNormal p t =
+    let private createHitResult (ray: Ray) outwardNormal p t =
         let frontFace = (Vector3.dot ray.Direction outwardNormal) < 0.0
         let normal = if frontFace then outwardNormal else -outwardNormal
         { P = p; T = t; Normal = normal; FrontFace = frontFace }
         
-    let hit r tMin tMax =
+    let hit (r: Ray) tMin tMax =
         function
         | Sphere (center, radius) ->
             let oc = r.Origin - center

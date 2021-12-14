@@ -1,4 +1,4 @@
-﻿module Raytracer.Rendering.Vector
+﻿namespace Raytracer.Rendering
 
 open System
 open System.Runtime.Intrinsics
@@ -77,3 +77,11 @@ module Color =
     let toSKColor (color: Color) =
         let scaled = color * 255.999
         SKColor(byte scaled.X, byte scaled.Y, byte scaled.Z)
+    
+    let write (x, y) (surface: SKBitmap) sampleCount (color: Color) =
+        let scale = 1.0 / (sampleCount |> float)
+        let scaledColor = scale * color
+        
+        surface.SetPixel(x, y, toSKColor scaledColor)
+        
+        
